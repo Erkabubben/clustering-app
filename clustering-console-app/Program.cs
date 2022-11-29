@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Diagnostics;
-using System.Numerics;
 
 class Program
 {
@@ -22,7 +21,6 @@ class Program
     private Random _random;
     private int[] _minOccurences;
     private int[] _maxOccurences;
-    private bool _showDebugMessages = true;
 
     static void Main(string[] args)
     {
@@ -35,11 +33,17 @@ class Program
         _random = new Random();
         //TestTXTParsing(new string[]{ "The Superficial - Because You're Ugly", "Publishing 2.0" });
 
+        if (_blogs == null || _blogs.Count <= 0)
+        {
+            Console.WriteLine("ERROR: No blogs were found - exiting.");
+            return;
+        }
+
         _totalAmountOfWords = _blogs[0].Wordcounts.Count;
         _totalAmountOfWordOcurrences = GetTotalAmountOfWordOccurencesInBlogs();
         InitiateMinAndMaxOccurencesArrays(_totalAmountOfWords);
 
-        Console.WriteLine("Total amount of words: " + _blogs[0].WordcountsDictionary.Count);
+        Console.WriteLine("Total amount of words: " + _blogs[0].Wordcounts.Count);
         Console.WriteLine("Total amount of word occurences: " + _totalAmountOfWordOcurrences);
 
         var centroids = ExecuteKMeansClustering(5, 20);
@@ -79,13 +83,13 @@ class Program
 
     private int GetTotalAmountOfWordOccurencesInBlogs()
     {
-        int words = 0;
+        double words = 0;
         foreach (var blog in _blogs)
         {
-            foreach (KeyValuePair<string, int> wordcount in blog.WordcountsDictionary)
-                words += wordcount.Value;
+            foreach (var wordcount in blog.Wordcounts)
+                words += wordcount;
         }
-        return words;
+        return (int)words;
     }
 
     private interface IWordcountsList
@@ -95,10 +99,15 @@ class Program
 
     private class Centroid : IWordcountsList
     {
-        private double _x;
-        private double _y;
-        private Vector2 _position;
         private List<Blog> _blogAssignments;
+        public List<Blog> BlogAssignments { get => _blogAssignments; set => _blogAssignments = value; }
+        public List<double> Wordcounts { get => _wordcounts; set => _wordcounts = value; }
+        public string PreviousAssignments { get => _previousAssignments; set => _previousAssignments = value; }
+        public bool IsFinished { get => _isFinished; set => _isFinished = value; }
+
+        private List<double> _wordcounts;
+        private string _previousAssignments = "";
+        private bool _isFinished = false;
 
         public Centroid()
         {
@@ -113,14 +122,6 @@ class Program
             if (blog != null)
                 Assign(blog);
         }
-
-        public double X { get => _x; set => _x = value; }
-        public double Y { get => _y; set => _y = value; }
-        public List<Blog> BlogAssignments { get => _blogAssignments; set => _blogAssignments = value; }
-        public List<double> Wordcounts { get => _wordcounts; set => _wordcounts = value; }
-        public Vector2 Position { get => _position; set => _position = value; }
-
-        private List<double> _wordcounts;
     }
 
     private Centroid[] ExecuteKMeansClustering(int clustersAmount, int maxIterations)
@@ -138,6 +139,7 @@ class Program
             centroids.Add(centroid);
         }
 
+        string previousAssignments = "";
         // Iteration loop
         for (int i = 0; i < maxIterations; i++)
         {
@@ -154,7 +156,6 @@ class Program
                 foreach (Centroid centroid in centroids)
                 {
                     double centroidDistance = Pearson(centroid, blog);
-                    //Console.WriteLine(centroidDistance);
                     if (centroidDistance < distance)
                     {
                         bestCentroid = centroid;
@@ -162,12 +163,7 @@ class Program
                     }
                 }
                 if (bestCentroid != null)
-                {
                     bestCentroid.Assign(blog);
-                    //Console.WriteLine(bestCentroid.BlogAssignments.Count);
-                }
-                    
-                
             }
 
             // Recalculate center for each centroid
@@ -187,9 +183,49 @@ class Program
                     centroid.Wordcounts[j] = avg;
                 }
             }
+            // Check AssignmentsString against string from previous iteration.
+            /*var currentAssignments = GetAssignmentsString(centroids);
+            if (currentAssignments == previousAssignments)
+                break;
+            else
+                previousAssignments = currentAssignments;*/
+            Console.WriteLine("Iteration: " + i);
+            foreach (var centroid in centroids)
+            {
+                var assignmentsString = GetAssignmentsString(centroid);
+                if (centroid.PreviousAssignments == assignmentsString)
+                    centroid.IsFinished = true;
+                else
+                    centroid.PreviousAssignments = assignmentsString;
+            }
+            int amountOfFinishedCentroids = 0;
+            foreach (var centroid in centroids)
+                amountOfFinishedCentroids += centroid.IsFinished ? 1 : 0;
+            if (amountOfFinishedCentroids == centroids.Count)
+                break;
             // End of iteration loop - all done.
         }
         return centroids.ToArray();
+    }
+
+    private string GetAssignmentsString(Centroid centroid)
+    {
+        string s = "";
+        foreach (var blog in centroid.BlogAssignments)
+            s += blog.Id;
+        return s;
+    }
+
+    private string GetAssignmentsString(List<Centroid> centroids)
+    {
+        string s = "";
+        foreach (var centroid in centroids)
+        {
+            foreach (var blog in centroid.BlogAssignments)
+                s += blog.Id;
+            s += ';';
+        }
+        return s;
     }
 
     private double Pearson(IWordcountsList A, IWordcountsList B)
@@ -214,16 +250,11 @@ class Program
             sumAsq += Math.Pow(countA, 2); // Sum of squared word counts for A
             sumBsq += Math.Pow(countB, 2); // Sum of squared word counts for B
             pSum += countA * countB; // Product of word counts from A and B
-            //Console.WriteLine(countA + ':' + countB);
         }
-        //Console.WriteLine(n);
-        //Console.WriteLine(sumAsq + ':' + sumBsq);
-
         // Calculate Pearson
         var num = pSum - (sumA * sumB / n);
         var den = Math.Sqrt((sumAsq - Math.Pow(sumA, 2) / n) * (sumBsq - Math.Pow(sumB, 2) / n));
         // Return inverted Pearson score
-        //Console.WriteLine(num + ':' + den);
         return 1.0 - num / den;
     }
 
@@ -233,8 +264,6 @@ class Program
         {
             var blog = _blogs.Find(blog => blog.Name == blogName);
             Console.WriteLine($"Printing data on blog '{blog.Name}':");
-            //foreach (KeyValuePair<string, int> wordcount in blog.WordcountsDictionary)
-            //    Console.WriteLine($"\t{wordcount.Key} : {wordcount.Value}");
             for (int i = 0; i < blog.Wordcounts.Count; i++)
             {
                 int wordcount = (int)blog.Wordcounts[i];
@@ -246,19 +275,16 @@ class Program
     private class Blog : IWordcountsList
     {
         private string _name;
-        private Dictionary<string, int> _wordcountsDictionary;
+        private int _id;
         private List<double> _wordcounts;
 
-        //public Vector2 Position { get => _position; set => _position = value; }
-
         public string Name { get => _name; set => _name = value; }
-        public Dictionary<string, int> WordcountsDictionary { get => _wordcountsDictionary; set => _wordcountsDictionary = value; }
         public List<double> Wordcounts { get => _wordcounts; set => _wordcounts = value; }
+        public int Id => _id;
 
-        public Blog(string name)
+        public Blog(string name, int id)
         {
             _name = name;
-            _wordcountsDictionary = new Dictionary<string,int>();
             _wordcounts = new List<double>();
         }
     }
@@ -294,18 +320,11 @@ class Program
             if (values.Length == 0)
                 return;
 
-            var newBlog = new Blog(values[0]);
+            var newBlog = new Blog(values[0], _blogs.Count);
             for (int i = 1; i < values.Length; i++)
-            {
-                newBlog.WordcountsDictionary.Add(firstLineValues[i], Int32.Parse(values[i]));
                 newBlog.Wordcounts.Add(Int32.Parse(values[i]));
-            }
+
             _blogs.Add(newBlog);
         });
-        /*ReadCSV(@"\datasets\example\movies.csv", (values)
-            => _movies.Add(new Movie(Int32.Parse(values[0]), values[1], Int32.Parse(values[2]))));
-        ReadCSV(@"\datasets\example\ratings.csv", (values)
-            => _movieRatings.Add(
-                new MovieRating(Int32.Parse(values[0]), Int32.Parse(values[1]), double.Parse(values[2].Replace('.', ',')))));*/
     }
 }
