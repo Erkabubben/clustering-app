@@ -92,6 +92,44 @@ class Program
         return (int)words;
     }
 
+    private void ExecuteHierarchicalClustering()
+    {
+        
+    }
+
+    private List<Cluster> Iterate(List<Cluster> clusters)
+    {
+        // Find two closest nodes
+        double closest = double.MaxValue;
+        Cluster A = null;
+        Cluster B = null;
+        foreach (var clusterA in clusters)
+        {
+            foreach (var clusterB in clusters)
+            {
+                double distance = Pearson(clusterA.Blog, clusterB.Blog);
+                if (distance < closest && clusterA != clusterB)
+                {
+                    // New set of closest nodes found
+                    closest = distance;
+                    A = clusterA;
+                    B = clusterB;
+                }
+            }
+        }
+        // Merge the two clusters
+        if (A == null || B == null)
+            return null;
+
+        Cluster newCluster = MergeClusters(A, B, closest);
+        // Add new cluster
+        clusters.Add(newCluster);
+        // Remove old clusters
+        clusters.Remove(A);
+        clusters.Remove(B);
+        return clusters;
+    }
+
     private Cluster MergeClusters(Cluster clusterA, Cluster clusterB, double distance)
     {
         // Number of words
