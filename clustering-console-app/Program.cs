@@ -48,6 +48,9 @@ class Program
 
         var centroids = ExecuteKMeansClustering(5, 20);
         PrintCentroidClusters(centroids);
+
+        var clusters = ExecuteHierarchicalClustering();
+        PrintClusters(clusters);
     }
 
     private void PrintCentroidClusters(Centroid[] centroids)
@@ -92,9 +95,49 @@ class Program
         return (int)words;
     }
 
-    private void ExecuteHierarchicalClustering()
+    private List<Cluster> ExecuteHierarchicalClustering()
     {
+        var clusters = new List<Cluster>();
+
+        foreach (var blog in _blogs)
+            clusters.Add(new Cluster(blog));
+
+        for (int i = 0; i < 10000; i++)
+        {
+            clusters = Iterate(clusters);
+            if (clusters.Count <= 1)
+                break;
+        }
+
+        return clusters;
+    }
+
+    private void PrintClusters(List<Cluster> clusters)
+    {
+        var topParent = clusters.FindIndex(cluster => cluster.Parent == null);
+        PrintCluster(clusters[topParent], 0);
+    }
+
+    private void PrintCluster(Cluster cluster, int indents)
+    {
+        string MultiplyIndents(int indents)
+        {
+            string s = "";
+            for (int i = 0; i < indents; i++)
+                s += '-';
+            return s;
+        }
+
+        indents++;
         
+        if (cluster.Blog != null && cluster.Blog.Id != -1)
+            Console.WriteLine("\n" + MultiplyIndents(indents) + cluster.Blog.Name);
+        else
+            Console.WriteLine("\n" + MultiplyIndents(indents) + "x");
+        if (cluster.Left != null)
+            PrintCluster(cluster.Left, indents);
+        if (cluster.Right != null)
+            PrintCluster(cluster.Right, indents);
     }
 
     private List<Cluster> Iterate(List<Cluster> clusters)
@@ -130,34 +173,35 @@ class Program
         return clusters;
     }
 
-    private Cluster MergeClusters(Cluster clusterA, Cluster clusterB, double distance)
+    private Cluster MergeClusters(Cluster A, Cluster B, double distance)
     {
+        //Console.WriteLine("Merging...");
         // Number of words
         int n = _totalAmountOfWords;
         // Create new Cluster
-        Cluster newCluster = new Cluster();
+        Cluster P = new Cluster();
         // Fill data
-        newCluster.Left = clusterA;
-        clusterA.Parent = newCluster;
-        newCluster.Right = clusterB;
-        clusterB.Parent = newCluster;
+        P.Left = A;
+        A.Parent = P;
+        P.Right = B;
+        B.Parent = P;
         // Merge blog data by averaging word counts for each word
         Blog newBlog = new Blog("", -1);
         for (int i = 0; i < n; i++)
         {
-            double countA = clusterA.Blog.Wordcounts[i];
-            double countB = clusterB.Blog.Wordcounts[i];
+            double countA = A.Blog.Wordcounts[i];
+            double countB = B.Blog.Wordcounts[i];
             // Average word count
             double count = (countA + countB) / 2;
             // Set word count to new blog
-            newBlog.Wordcounts[i] = count;
+            newBlog.Wordcounts.Add(count);
         }
         // Set blog to new cluster
-        newCluster.Blog = newBlog;
+        P.Blog = newBlog;
         // Set distance
-        newCluster.Distance = distance;
+        P.Distance = distance;
         // Return new cluster
-        return newCluster;
+        return P;
     }
 
     private class Cluster
