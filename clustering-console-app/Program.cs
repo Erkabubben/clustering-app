@@ -92,6 +92,58 @@ class Program
         return (int)words;
     }
 
+    private Cluster MergeClusters(Cluster clusterA, Cluster clusterB, double distance)
+    {
+        // Number of words
+        int n = _totalAmountOfWords;
+        // Create new Cluster
+        Cluster newCluster = new Cluster();
+        // Fill data
+        newCluster.Left = clusterA;
+        clusterA.Parent = newCluster;
+        newCluster.Right = clusterB;
+        clusterB.Parent = newCluster;
+        // Merge blog data by averaging word counts for each word
+        Blog newBlog = new Blog("", -1);
+        for (int i = 0; i < n; i++)
+        {
+            double countA = clusterA.Blog.Wordcounts[i];
+            double countB = clusterB.Blog.Wordcounts[i];
+            // Average word count
+            double count = (countA + countB) / 2;
+            // Set word count to new blog
+            newBlog.Wordcounts[i] = count;
+        }
+        // Set blog to new cluster
+        newCluster.Blog = newBlog;
+        // Set distance
+        newCluster.Distance = distance;
+        // Return new cluster
+        return newCluster;
+    }
+
+    private class Cluster
+    {
+        private Cluster _parent;
+        private Cluster _left;
+        private Cluster _right;
+        private Blog _blog;
+        private double _distance;
+        public Cluster Left { get => _left; set => _left = value; }
+        public Cluster Right { get => _right; set => _right = value; }
+        public Blog Blog { get => _blog; set => _blog = value; }
+        public double Distance { get => _distance; set => _distance = value; }
+        public Cluster Parent { get => _parent; set => _parent = value; }
+        public Cluster(){}
+        public Cluster(Blog blog) => _blog = blog;
+        public Cluster(Cluster left, Cluster right, double distance)
+        {
+            _left = left;
+            _right = right;
+            _distance = distance;
+        }    
+    }
+
     private interface IWordcountsList
     {
         public List<double> Wordcounts { get; set; }
@@ -139,7 +191,6 @@ class Program
             centroids.Add(centroid);
         }
 
-        string previousAssignments = "";
         // Iteration loop
         for (int i = 0; i < maxIterations; i++)
         {
@@ -183,13 +234,7 @@ class Program
                     centroid.Wordcounts[j] = avg;
                 }
             }
-            // Check AssignmentsString against string from previous iteration.
-            /*var currentAssignments = GetAssignmentsString(centroids);
-            if (currentAssignments == previousAssignments)
-                break;
-            else
-                previousAssignments = currentAssignments;*/
-            Console.WriteLine("Iteration: " + i);
+            // Check AssignmentsStrings against strings from previous iteration.
             foreach (var centroid in centroids)
             {
                 var assignmentsString = GetAssignmentsString(centroid);
@@ -199,6 +244,7 @@ class Program
                     centroid.PreviousAssignments = assignmentsString;
             }
             int amountOfFinishedCentroids = 0;
+            // Break iteration loop if all centroids have finished.
             foreach (var centroid in centroids)
                 amountOfFinishedCentroids += centroid.IsFinished ? 1 : 0;
             if (amountOfFinishedCentroids == centroids.Count)
@@ -213,18 +259,6 @@ class Program
         string s = "";
         foreach (var blog in centroid.BlogAssignments)
             s += blog.Id;
-        return s;
-    }
-
-    private string GetAssignmentsString(List<Centroid> centroids)
-    {
-        string s = "";
-        foreach (var centroid in centroids)
-        {
-            foreach (var blog in centroid.BlogAssignments)
-                s += blog.Id;
-            s += ';';
-        }
         return s;
     }
 
