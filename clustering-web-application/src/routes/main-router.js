@@ -1,5 +1,5 @@
 /**
- * Routes for the GitLab OAuth application.
+ * Routes for the Clusters application.
  *
  * @author Erik Lindholm <elimk06@student.lnu.se>
  * @author Mats Loock

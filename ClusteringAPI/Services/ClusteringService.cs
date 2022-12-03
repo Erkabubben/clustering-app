@@ -24,10 +24,15 @@ namespace ClusteringAPI.Services
         private int[] _minOccurences;
         private int[] _maxOccurences;
 
+        /// <summary>
+        /// Constructor for ClusteringService.
+        /// </summary>
+        /// <param name="nameOfDataset">The name of the dataset to load and parse on creation.</param>
         public ClusteringService(string nameOfDataset)
         {
             ReadTXTs(nameOfDataset);
             _random = new Random();
+
             //TestTXTParsing(new string[]{ "The Superficial - Because You're Ugly", "Publishing 2.0" });
 
             if (_blogs == null || _blogs.Count <= 0)
@@ -39,17 +44,27 @@ namespace ClusteringAPI.Services
             _totalAmountOfWords = _blogs[0].Wordcounts.Count;
             _totalAmountOfWordOcurrences = GetTotalAmountOfWordOccurencesInBlogs();
             InitiateMinAndMaxOccurencesArrays(_totalAmountOfWords);
+        }
 
-            /*Console.WriteLine("Total amount of words: " + _blogs[0].Wordcounts.Count);
+        /// <summary>
+        /// Tests the clustering methods.
+        /// </summary>
+        private void TestKMeansAndHierarchicalClustering()
+        {
+            Console.WriteLine("Total amount of words: " + _blogs[0].Wordcounts.Count);
             Console.WriteLine("Total amount of word occurences: " + _totalAmountOfWordOcurrences);
 
             var centroids = ExecuteKMeansClustering(5, 20);
             PrintCentroidClusters(centroids);
 
-            var clusters = ExecuteHierarchicalClustering();
-            PrintClusters(clusters);*/
+            var mainCluster = ExecuteHierarchicalClustering();
+            PrintClusters(mainCluster);
         }
 
+        /// <summary>
+        /// Runs the ExecuteKMeansClustering() algorithm and returns the result as a KMeansClusteringResponse.
+        /// </summary>
+        /// <returns>KMeansClusteringResponse</returns>
         public KMeansClusteringResponse GetKMeansClusters()
         {
             var centroids = ExecuteKMeansClustering(5, 20);
@@ -67,6 +82,10 @@ namespace ClusteringAPI.Services
             return new KMeansClusteringResponse(responseData);
         }
 
+        /// <summary>
+        /// Runs the ExecuteHierarchicalClustering() algorithm and returns the result as a HierarchicalClusteringResponse.
+        /// </summary>
+        /// <returns>HierarchicalClusteringResponse</returns>
         public HierarchicalClusteringResponse GetHierarchicalClusters()
         {
             void AddClusterAndChildrenToAllClustersList(Cluster cluster, Dictionary<Cluster, int> indexDictionary, List<Cluster> allClusters)
@@ -82,19 +101,17 @@ namespace ClusteringAPI.Services
                     AddClusterAndChildrenToAllClustersList(cluster.Right, indexDictionary, allClusters);
             }
 
-            var clusters = ExecuteHierarchicalClustering();
+            var mainCluster = ExecuteHierarchicalClustering();
             var allClusters = new List<Cluster>();
             var responseClusters = new List<HierarchicalClusteringResponse.ResponseCluster>();
             var indexDictionary = new Dictionary<Cluster, int>();
-            AddClusterAndChildrenToAllClustersList(clusters[0], indexDictionary, allClusters);
-            /*for (int i = 0; i < clusters.Count; i++)
-            {
-                Cluster? cluster = clusters[i];
-                indexDictionary.Add(cluster, i);
-            }*/
+
+            // Populate the allClusters list by recursively adding all clusters.
+            AddClusterAndChildrenToAllClustersList(mainCluster, indexDictionary, allClusters);
+
+            // Convert allClusters to HierarchicalClusteringResponse.ResponseClusters and adds them to responseClusters list.
             foreach (var cluster in allClusters)
             {
-                Console.WriteLine(1);
                 var responseCluster = new HierarchicalClusteringResponse.ResponseCluster();
                 responseCluster.Blog = cluster.Blog != null ? cluster.Blog.Name : null;
                 responseCluster.Left = cluster.Left != null && indexDictionary.ContainsKey(cluster.Left) ? indexDictionary[cluster.Left] : -1;
@@ -102,9 +119,14 @@ namespace ClusteringAPI.Services
                 responseCluster.Parent = cluster.Parent != null && indexDictionary.ContainsKey(cluster.Parent) ? indexDictionary[cluster.Parent] : -1;
                 responseClusters.Add(responseCluster);
             }
+            // Creates and returns a HierarchicalClusteringResponse from the responseClusters list.
             return new HierarchicalClusteringResponse(responseClusters);
         }
 
+        /// <summary>
+        /// Prints an array of Centroids to the console.
+        /// </summary>
+        /// <param name="centroids">An array of centroids.</param>
         private void PrintCentroidClusters(Centroid[] centroids)
         {
             for (int i = 0; i < centroids.Length; i++)
@@ -116,6 +138,10 @@ namespace ClusteringAPI.Services
             }
         }
 
+        /// <summary>
+        /// Sets up arrays of min and max amounts of word occurences in the blogs.
+        /// </summary>
+        /// <param name="wordsTotal">The total amount of words in the data.</param>
         private void InitiateMinAndMaxOccurencesArrays(int wordsTotal)
         {
             _minOccurences = new int[_blogs[0].Wordcounts.Count];
@@ -136,6 +162,10 @@ namespace ClusteringAPI.Services
             }
         }
 
+        /// <summary>
+        /// Iterates all blogs and returns the total amount of word occurences.
+        /// </summary>
+        /// <returns>int</returns>
         private int GetTotalAmountOfWordOccurencesInBlogs()
         {
             double words = 0;
@@ -147,7 +177,11 @@ namespace ClusteringAPI.Services
             return (int)words;
         }
 
-        private List<Cluster> ExecuteHierarchicalClustering()
+        /// <summary>
+        /// Generates 
+        /// </summary>
+        /// <returns></returns>
+        private Cluster ExecuteHierarchicalClustering()
         {
             var clusters = new List<Cluster>();
 
@@ -161,14 +195,10 @@ namespace ClusteringAPI.Services
                     break;
             }
 
-            return clusters;
+            return clusters[0];
         }
 
-        private void PrintClusters(List<Cluster> clusters)
-        {
-            var topParent = clusters.FindIndex(cluster => cluster.Parent == null);
-            PrintCluster(clusters[topParent], 0);
-        }
+        private void PrintClusters(Cluster mainCluster) => PrintCluster(mainCluster, 0);
 
         private void PrintCluster(Cluster cluster, int indents)
         {
@@ -272,12 +302,12 @@ namespace ClusteringAPI.Services
             public Cluster(Blog blog) => _blog = blog;
         }
 
-        public interface IWordcountsList
+        private interface IWordcountsList
         {
             public List<double> Wordcounts { get; set; }
         }
 
-        public class Centroid : IWordcountsList
+        private class Centroid : IWordcountsList
         {
             private List<Blog> _blogAssignments;
             public List<Blog> BlogAssignments { get => _blogAssignments; set => _blogAssignments = value; }
@@ -434,7 +464,7 @@ namespace ClusteringAPI.Services
             }
         }
 
-        public class Blog : IWordcountsList
+        private class Blog : IWordcountsList
         {
             private string _name;
             private int _id;
