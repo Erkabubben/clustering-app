@@ -4,9 +4,7 @@ namespace ClusteringAPI.Models
 {
     public class UserRequest
     {
-        public string User { get; set; }
-        public string Similarity { get; set; }
-        public int Results { get; set; }
+
     }
 
     public class KMeansClusteringResponse
@@ -16,6 +14,24 @@ namespace ClusteringAPI.Models
         public KMeansClusteringResponse(List<string[]> centroids)
         {
             Centroids = centroids;
+        }
+    }
+
+    public class HierarchicalClusteringResponse
+    {
+        public class ResponseCluster
+        {
+            public int Left { get; set; }
+            public int Right { get; set; }
+            public int Parent { get; set; }
+            public string Blog { get; set; }
+        }
+
+        public List<ResponseCluster> Clusters { get; set; }
+
+        public HierarchicalClusteringResponse(List<ResponseCluster> responseClusterList)
+        {
+            Clusters = responseClusterList;
         }
     }
 

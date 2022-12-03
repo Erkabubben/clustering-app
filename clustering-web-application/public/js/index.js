@@ -1,24 +1,28 @@
 async function button0() {
-    const responseJSON = await getFetchRequest("./KMeansClustering")
+    setSpinnerAndListVisibility(false)
+    const responseJSON = await fetchGetRequest("./KMeansClustering")
     updateTreeViewFromKMeansData(responseJSON)
-    /*removeTableChildren()
-    addRowToTable(resultsTable, ['User', 'Similarity'], true)
-    for (let i = 0; i < responseJSON.users.length; i++) {
-        addRowToTable(resultsTable, [responseJSON.users[i], responseJSON.similarities[i]], false)
-    }*/
+    setSpinnerAndListVisibility(true)
 }
 
 async function button1() {
-    const responseJSON = await getFetchRequest("./HierarchichalClustering")
-    removeTableChildren()
-    addRowToTable(resultsTable, ['Movie', 'ID', 'Score'], true)
-    for (let i = 0; i < responseJSON.movies.length; i++) {
-        addRowToTable(resultsTable, [responseJSON.movies[i], responseJSON.ids[i], responseJSON.scores[i]], false)
+    setSpinnerAndListVisibility(false)
+    const responseJSON = await fetchGetRequest("./HierarchicalClustering")
+    updateTreeViewFromHierarchicalData(responseJSON)
+    setSpinnerAndListVisibility(true)
+}
+
+function setSpinnerAndListVisibility(listIsVisible) {
+    if (listIsVisible) {
+        spinnerContainer.setAttribute('hidden', 'true')
+        listContainer.removeAttribute('hidden')
+    } else {
+        spinnerContainer.removeAttribute('hidden')
+        listContainer.setAttribute('hidden', 'true')
     }
 }
 
-async function getFetchRequest (url) {
-    const formDataString = await JSON.stringify(getFormData())
+async function fetchGetRequest (url) {
     const response = await fetch(url, {
         method: 'get',
         headers: { 'Content-Type': 'application/json' }
@@ -26,31 +30,10 @@ async function getFetchRequest (url) {
     return await response.json()
 }
 
-function removeTableChildren() {
-    resultsTable.removeAttribute('hidden')
-    while (resultsTable.lastChild !== null) {
-        resultsTable.removeChild(resultsTable.lastChild)
-    }
-}
-
 function removeChildren(node) {
     while (node.lastChild !== null) {
         node.removeChild(node.lastChild)
     }
-}
-
-function addRowToTable (table, textContent, isHeader) {
-    const row = document.createElement('tr')
-    textContent.forEach(element => {
-        const newElement = isHeader ? document.createElement('th') : document.createElement('td')
-        newElement.textContent = element
-        row.appendChild(newElement)
-    })
-    table.appendChild(row)
-}
-
-function getFormData() {
-    return {}
 }
 
 function updateTreeViewTogglers() {
@@ -85,10 +68,70 @@ function updateTreeViewFromKMeansData(results) {
         })
     })
     updateTreeViewTogglers()
+    expandAll()
 }
 
-var resultsTable = document.querySelector('#results-table')
+function updateTreeViewFromHierarchicalData(results)
+{
+    function iterateClusters(cluster_id, node) {
+        const cluster = results.clusters[cluster_id]
+        const caret = document.createElement('li')
+        node.appendChild(caret)
+        const span = document.createElement('span')
+        caret.appendChild(span)
+        span.classList.add('caret')
+        const subList = document.createElement('ul')
+        subList.classList.add('nested')
+        caret.appendChild(subList)
+        if (cluster.blog !== '') {
+            const subListItem = document.createElement('li')
+            subList.appendChild(subListItem)
+            subListItem.textContent = cluster.blog
+        }
+        if (cluster.left !== -1) {
+            iterateClusters(cluster.left, subList)
+        }
+        if (cluster.right !== -1) {
+            iterateClusters(cluster.right, subList)
+        }
+    }
+
+    removeChildren(treeViewBase)
+    iterateClusters(0, treeViewBase)
+    updateTreeViewTogglers()
+    expandAll();
+}
+
+
+function expandAll() {
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+        toggler[i].parentElement.querySelector(".nested").classList.add("active")
+        toggler[i].classList.add("caret-down")
+    }
+}
+
+function collapseAll() {
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+        toggler[i].parentElement.querySelector(".nested").classList.remove("active")
+        toggler[i].classList.remove("caret-down")
+    }
+}
+
 document.querySelector('#button-k-means-clustering').addEventListener('click', button0)
 document.querySelector('#button-hierarchical-clustering').addEventListener('click', button1)
+document.querySelector('#button-expand').addEventListener('click', expandAll)
+document.querySelector('#button-collapse').addEventListener('click', collapseAll)
+
 var treeViewBase = document.querySelector('#myUL')
+var spinnerContainer = document.querySelector('#spinner-container')
+var listContainer = document.querySelector('#list-container')
+spinnerContainer.setAttribute('hidden', 'true')
+listContainer.setAttribute('hidden', 'true')
+removeChildren(treeViewBase)
 updateTreeViewTogglers()

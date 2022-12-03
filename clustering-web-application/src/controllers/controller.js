@@ -21,11 +21,6 @@ export class Controller {
    */
   async index (req, res, next) {
     try {
-      /*const response = await fetch(process.env.API_URL + "/GetUsersList", {
-        method: 'get',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      const responseJSON = await response.json()*/
       res.render('main/index')
     } catch (error) {
       next(error)
@@ -42,8 +37,8 @@ export class Controller {
     res.end(await response.text())
   }
 
-  async HierarchichalClustering (req, res, next) {
-    const response = await fetch(process.env.API_URL + "/HierarchichalClustering", {
+  async HierarchicalClustering (req, res, next) {
+    const response = await fetch(process.env.API_URL + "/HierarchicalClustering", {
         method: 'get',
         headers: { 'Content-Type': 'application/json' }
     })

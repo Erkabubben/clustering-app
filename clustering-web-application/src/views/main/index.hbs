@@ -16,40 +16,16 @@
         <br />-->
         <button type="button" id="button-k-means-clustering">K-means Clustering (Pearson)</button>
         <button type="button" id="button-hierarchical-clustering">Hierarchical Clustering (Pearson)</button>
+        <br />
+        <button type="button" id="button-expand">Expand</button>
+        <button type="button" id="button-collapse">Collapse</button>
         <br /><br />
-        <ul id="myUL">
-            <li><span class="caret">Beverages</span>
-                <ul class="nested">
-                <li>Water</li>
-                <li>Coffee</li>
-                <li><span class="caret">Tea</span>
-                    <ul class="nested">
-                    <li>Black Tea</li>
-                    <li>White Tea</li>
-                    <li><span class="caret">Green Tea</span>
-                        <ul class="nested">
-                        <li>Sencha</li>
-                        <li>Gyokuro</li>
-                        <li>Matcha</li>
-                        <li>Pi Lo Chun</li>
-                        </ul>
-                    </li>
-                    </ul>
-                </li>
-                </ul>
-            </li>
-        </ul> 
-        <!--<table id="results-table" hidden>
-            <tr>
-                <th>Movie</th>
-                <th>ID</th>
-                <th>Score</th>
-            </tr>
-            <tr>
-                <td>Just My Luck</td>
-                <td>3</td>
-                <td>3.55</td>
-            </tr>
-        </table> -->
+        <div id="spinner-container">
+            <div class="spin"></div>
+        </div>
+        <div id="list-container">
+            <ul id="myUL">
+            </ul>
+        </div>
     </form>
 </div>

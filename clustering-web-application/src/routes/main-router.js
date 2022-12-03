@@ -16,4 +16,4 @@ const controller = new Controller()
 // Map HTTP verbs and route paths to controller actions.
 router.get('/', controller.index)
 router.get('/KMeansClustering', controller.KMeansClustering)
-router.get('/HierarchichalClustering', controller.HierarchichalClustering)
+router.get('/HierarchicalClustering', controller.HierarchicalClustering)

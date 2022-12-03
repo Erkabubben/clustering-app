@@ -67,6 +67,44 @@ namespace ClusteringAPI.Services
             return new KMeansClusteringResponse(responseData);
         }
 
+        public HierarchicalClusteringResponse GetHierarchicalClusters()
+        {
+            void AddClusterAndChildrenToAllClustersList(Cluster cluster, Dictionary<Cluster, int> indexDictionary, List<Cluster> allClusters)
+            {
+                if (!indexDictionary.ContainsKey(cluster))
+                {
+                    indexDictionary.Add(cluster, allClusters.Count);
+                    allClusters.Add(cluster);
+                }
+                if (cluster.Left != null)
+                    AddClusterAndChildrenToAllClustersList(cluster.Left, indexDictionary, allClusters);
+                if (cluster.Right != null)
+                    AddClusterAndChildrenToAllClustersList(cluster.Right, indexDictionary, allClusters);
+            }
+
+            var clusters = ExecuteHierarchicalClustering();
+            var allClusters = new List<Cluster>();
+            var responseClusters = new List<HierarchicalClusteringResponse.ResponseCluster>();
+            var indexDictionary = new Dictionary<Cluster, int>();
+            AddClusterAndChildrenToAllClustersList(clusters[0], indexDictionary, allClusters);
+            /*for (int i = 0; i < clusters.Count; i++)
+            {
+                Cluster? cluster = clusters[i];
+                indexDictionary.Add(cluster, i);
+            }*/
+            foreach (var cluster in allClusters)
+            {
+                Console.WriteLine(1);
+                var responseCluster = new HierarchicalClusteringResponse.ResponseCluster();
+                responseCluster.Blog = cluster.Blog != null ? cluster.Blog.Name : null;
+                responseCluster.Left = cluster.Left != null && indexDictionary.ContainsKey(cluster.Left) ? indexDictionary[cluster.Left] : -1;
+                responseCluster.Right = cluster.Right != null && indexDictionary.ContainsKey(cluster.Right) ? indexDictionary[cluster.Right] : -1;
+                responseCluster.Parent = cluster.Parent != null && indexDictionary.ContainsKey(cluster.Parent) ? indexDictionary[cluster.Parent] : -1;
+                responseClusters.Add(responseCluster);
+            }
+            return new HierarchicalClusteringResponse(responseClusters);
+        }
+
         private void PrintCentroidClusters(Centroid[] centroids)
         {
             for (int i = 0; i < centroids.Length; i++)

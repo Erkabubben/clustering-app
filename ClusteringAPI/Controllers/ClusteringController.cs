@@ -29,11 +29,11 @@ namespace ClusteringAPI.Controllers
             return _clusteringService.GetKMeansClusters();
         }
 
-        /*[HttpPost]
-        [Route("HierarchichalClustering")]
-        public ActionResult<MovieRecommendationsResponse> HierarchichalClustering(UserRequest request)
+        [HttpGet]
+        [Route("HierarchicalClustering")]
+        public ActionResult<HierarchicalClusteringResponse> HierarchichalClustering()
         {
-            return _clusteringService.FindMovieRecommendationsForUser(request);
-        }*/
+            return _clusteringService.GetHierarchicalClusters();
+        }
     }
 }
