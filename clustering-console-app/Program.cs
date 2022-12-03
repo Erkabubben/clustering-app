@@ -218,12 +218,6 @@ class Program
         public Cluster Parent { get => _parent; set => _parent = value; }
         public Cluster(){}
         public Cluster(Blog blog) => _blog = blog;
-        public Cluster(Cluster left, Cluster right, double distance)
-        {
-            _left = left;
-            _right = right;
-            _distance = distance;
-        }    
     }
 
     private interface IWordcountsList

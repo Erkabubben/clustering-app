@@ -1,0 +1,29 @@
+<h1 class="center-header">GitLab User Info</h1>
+
+<img src="{{userResponseJSON.avatar_url}}">
+<p>
+    <b>Name: </b>{{userResponseJSON.name}}<br>
+    <b>Username: </b>{{userResponseJSON.username}}<br>
+    <b>User ID: </b>{{userResponseJSON.id}}<br>
+    <b>Email: </b>{{userResponseJSON.email}}<br>
+    <b>Last Activity: </b>{{userResponseJSON.last_activity_on}}<br>
+</p>
+
+<table class="activities-table">
+    {{#if events.length }}
+    <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Activity</th>
+    </tr>
+    {{#each events}}
+    <tr>
+        <td>{{this.created_at_date}}</td>
+        <td>{{this.created_at_time}}</td>
+        <td>{{this.action_name}}</td>
+    </tr>
+    {{/each}}
+    {{else}}
+    <p>No activities yet.</p>
+    {{/if}}
+</table>

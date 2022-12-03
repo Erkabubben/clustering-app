@@ -1,0 +1,47 @@
+{
+  "name": "assignment-w1-oauth",
+  "version": "1.0.0",
+  "description": "1DV027 - Assignment WT1 - OAuth",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "start:dev": "nodemon --inspect -r dotenv/config src/server.js",
+    "lint": "npx eslint ./src || exit 0",
+    "lint:fix": "npx eslint ./src --fix || exit 0"
+  },
+  "repository": "git@gitlab.lnu.se:1dv027/student/elimk06/assignment-wt1-oauth.git",
+  "contributors": [
+    "Mats Loock <mats.loock@lnu.se>",
+    "Erik Lindholm <elimk06@student.lnu.se>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-hbs": "^2.4.0",
+    "express-session": "^1.17.3",
+    "helmet": "^4.6.0",
+    "http-errors": "^1.8.1",
+    "https": "^1.0.0",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "@lnu/eslint-config": "^1.1.7",
+    "dotenv": "^8.6.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^30.7.13",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "nodemon": "^2.0.20"
+  },
+  "eslintConfig": {
+    "extends": "@lnu"
+  },
+  "nodemonConfig": {
+    "ext": "js,json,hbs,html,css"
+  }
+}
