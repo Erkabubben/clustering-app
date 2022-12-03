@@ -132,16 +132,10 @@ const main = async () => {
     cert: fs.readFileSync('cert/server.crt')
   }
 
-  const server = https.createServer(options, app).listen(process.env.PORT, () => {
+  https.createServer(options, app).listen(process.env.PORT, () => {
     console.log(`Server running at https://localhost:${process.env.PORT}`)
     console.log('Press Ctrl-C to terminate...')
   })
-
-  // Starts the HTTP server listening for connections.
-  /*app.listen(process.env.PORT, () => {
-    console.log(`Server running at http://localhost:${process.env.PORT}`)
-    console.log('Press Ctrl-C to terminate...')
-  })*/
 }
 
 main().catch(console.error)

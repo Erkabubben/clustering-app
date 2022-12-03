@@ -1,3 +1,6 @@
+/**
+ * OnClick function for the K-Means Clustering button.
+ */
 async function button0() {
     setSpinnerAndListVisibility(false)
     const responseJSON = await fetchGetRequest("./KMeansClustering")
@@ -5,6 +8,9 @@ async function button0() {
     setSpinnerAndListVisibility(true)
 }
 
+/**
+ * OnClick function for the Hierarchical Clustering button.
+ */
 async function button1() {
     setSpinnerAndListVisibility(false)
     const responseJSON = await fetchGetRequest("./HierarchicalClustering")
@@ -12,8 +18,13 @@ async function button1() {
     setSpinnerAndListVisibility(true)
 }
 
-function setSpinnerAndListVisibility(listIsVisible) {
-    if (listIsVisible) {
+/**
+ * Makes a K-Means Clustering request to the Clustering API and returns the result JSON.
+ *
+ * @param {bool} setListToVisible - Whether to set the list to visible and spinner to hidden or vice versa.
+ */
+function setSpinnerAndListVisibility(setListToVisible) {
+    if (setListToVisible) {
         spinnerContainer.setAttribute('hidden', 'true')
         listContainer.removeAttribute('hidden')
     } else {
@@ -22,6 +33,11 @@ function setSpinnerAndListVisibility(listIsVisible) {
     }
 }
 
+/**
+ * Makes a GET request to the provided URL and returns the response as JSON.
+ * 
+ * @param {string} url - The url to make the request to.
+ */
 async function fetchGetRequest (url) {
     const response = await fetch(url, {
         method: 'get',
@@ -30,12 +46,20 @@ async function fetchGetRequest (url) {
     return await response.json()
 }
 
+/**
+ * Removes all children of a DOM node.
+ * 
+ * @param {Element} node - The node to remove all children from.
+ */
 function removeChildren(node) {
     while (node.lastChild !== null) {
         node.removeChild(node.lastChild)
     }
 }
 
+/**
+ * Assigns OnClick functions to all the current Tree View togglers.
+ */
 function updateTreeViewTogglers() {
     var toggler = document.getElementsByClassName("caret");
     var i;
@@ -47,6 +71,11 @@ function updateTreeViewTogglers() {
     })} 
 }
 
+/**
+ * Updates the Tree View to display a tree generated from a K-Means Clustering response from the API.
+ * 
+ * @param {Object} results - A K-Means Clustering response from the API.
+ */
 function updateTreeViewFromKMeansData(results) {
     removeChildren(treeViewBase)
     var i = 0
@@ -71,6 +100,11 @@ function updateTreeViewFromKMeansData(results) {
     expandAll()
 }
 
+/**
+ * Updates the Tree View to display a tree generated from a Hierarchical Clustering response from the API.
+ * 
+ * @param {Object} results - A Hierarchical Clustering response from the API.
+ */
 function updateTreeViewFromHierarchicalData(results)
 {
     function iterateClusters(cluster_id, node) {
@@ -102,7 +136,9 @@ function updateTreeViewFromHierarchicalData(results)
     expandAll();
 }
 
-
+/**
+ * Sets the state of all current Tree View togglers to expanded.
+ */
 function expandAll() {
     var toggler = document.getElementsByClassName("caret");
     var i;
@@ -113,6 +149,9 @@ function expandAll() {
     }
 }
 
+/**
+ * Sets the state of all current Tree View togglers to collapsed.
+ */
 function collapseAll() {
     var toggler = document.getElementsByClassName("caret");
     var i;
