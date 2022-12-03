@@ -1,23 +1,14 @@
 async function button0() {
-    const responseJSON = await fetchRequest("./findTopMatchingUsers")
-    removeTableChildren()
+    const responseJSON = await fetchRequest("./KMeansClustering")
+    /*removeTableChildren()
     addRowToTable(resultsTable, ['User', 'Similarity'], true)
     for (let i = 0; i < responseJSON.users.length; i++) {
         addRowToTable(resultsTable, [responseJSON.users[i], responseJSON.similarities[i]], false)
-    }
+    }*/
 }
 
 async function button1() {
-    const responseJSON = await fetchRequest("./findMovieRecommendationsForUser")
-    removeTableChildren()
-    addRowToTable(resultsTable, ['Movie', 'ID', 'Score'], true)
-    for (let i = 0; i < responseJSON.movies.length; i++) {
-        addRowToTable(resultsTable, [responseJSON.movies[i], responseJSON.ids[i], responseJSON.scores[i]], false)
-    }
-}
-
-async function button2() {
-    const responseJSON = await fetchRequest("./findMovieRecommendationsItemBased")
+    const responseJSON = await fetchRequest("./HierarchichalClustering")
     removeTableChildren()
     addRowToTable(resultsTable, ['Movie', 'ID', 'Score'], true)
     for (let i = 0; i < responseJSON.movies.length; i++) {
@@ -53,14 +44,9 @@ function addRowToTable (table, textContent, isHeader) {
 }
 
 function getFormData() {
-    return {
-        user: document.querySelector('#users').value,
-        similarity: document.querySelector('#similarity').value,
-        results: document.querySelector('#results').value
-    }
+    return {}
 }
 
 var resultsTable = document.querySelector('#results-table')
-document.querySelector('#button-find-matching-users').addEventListener('click', button0)
-document.querySelector('#button-find-movies').addEventListener('click', button1)
-document.querySelector('#button-find-movies-item').addEventListener('click', button2)
+document.querySelector('#button-k-means-clustering').addEventListener('click', button0)
+document.querySelector('#button-hierarchical-clustering').addEventListener('click', button1)

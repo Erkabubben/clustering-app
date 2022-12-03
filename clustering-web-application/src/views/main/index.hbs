@@ -1,17 +1,6 @@
-<!--{{#if triedLoggingIn}}
-<h1 class="center-header">Please try logging on again.</h1>
-<p class="centered-text">Your last login attempt failed - please try again.</p><br>
-{{else}}
-<h1 class="center-header">Welcome!</h1>
-<p class="centered-text">Please click the button below to log on using your GitLab account.</p><br>
-{{/if}}
-
-<a href="./gitlab" id="gitlab-button" type="button" class="button-link" >Log on using GitLab account</a>
--->
-
 <div>
     <form>
-        <label for="users">Choose a user:</label>
+        <!--<label for="users">Choose a user:</label>
         <select name="users" id="users">
             {{#each userNames}}
                 <option value="{{this}}">{{this}}</option>
@@ -24,10 +13,9 @@
         </select>
         <label for="results">Results:</label>
         <input id="results" type="number" value="3" />
-        <br />
-        <button type="button" id="button-find-matching-users">Find top matching users</button>
-        <button type="button" id="button-find-movies">Find recommended movies</button>
-        <button type="button" id="button-find-movies-item">Find recommendations, item-based</button>
+        <br />-->
+        <button type="button" id="button-k-means-clustering">K-means Clustering (Pearson)</button>
+        <button type="button" id="button-hierarchical-clustering">Hierarchical Clustering (Pearson)</button>
         <br /><br />
         <table id="results-table" hidden>
             <tr>

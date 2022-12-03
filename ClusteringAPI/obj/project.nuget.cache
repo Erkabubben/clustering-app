@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "jwIEhL3SZMwQIn8Nd+77ChrgMKyiw4d+eiknw7mRAWiNTNdeYAZaKirbsxH87EQ4PBarrOYNrUuL7SUrcBED7A==",
+  "success": true,
+  "projectFilePath": "D:\\Filarkivet\\Kurser\\2DV515 - Web Intelligence\\a2-clustering\\ClusteringAPI\\ClusteringAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\MSI\\.nuget\\packages\\microsoft.extensions.apidescription.server\\3.0.0\\microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
+    "C:\\Users\\MSI\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\MSI\\.nuget\\packages\\swashbuckle.aspnetcore\\6.2.3\\swashbuckle.aspnetcore.6.2.3.nupkg.sha512",
+    "C:\\Users\\MSI\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.2.3\\swashbuckle.aspnetcore.swagger.6.2.3.nupkg.sha512",
+    "C:\\Users\\MSI\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.2.3\\swashbuckle.aspnetcore.swaggergen.6.2.3.nupkg.sha512",
+    "C:\\Users\\MSI\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.2.3\\swashbuckle.aspnetcore.swaggerui.6.2.3.nupkg.sha512"
+  ],
+  "logs": []
+}

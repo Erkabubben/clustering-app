@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "IBbyWvyIpqjBOEsX8uv1Tk3m2pkadY+3AX1jP9dppfQ=",
+  "Source": "ClusteringAPI",
+  "BasePath": "_content/ClusteringAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

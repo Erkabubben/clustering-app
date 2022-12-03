@@ -21,19 +21,19 @@ export class Controller {
    */
   async index (req, res, next) {
     try {
-      const response = await fetch(process.env.API_URL + "/GetUsersList", {
+      /*const response = await fetch(process.env.API_URL + "/GetUsersList", {
         method: 'get',
         headers: { 'Content-Type': 'application/json' }
       })
-      const responseJSON = await response.json()
-      res.render('main/index', { userNames: responseJSON.userNames })
+      const responseJSON = await response.json()*/
+      res.render('main/index')
     } catch (error) {
       next(error)
     }
   }
 
-  async findTopMatchingUsers (req, res, next) {
-    const response = await fetch(process.env.API_URL + "/FindTopMatchingUsers", {
+  async KMeansClustering (req, res, next) {
+    const response = await fetch(process.env.API_URL + "/KMeansClustering", {
         method: 'post',
         body: await JSON.stringify(req.body),
         headers: { 'Content-Type': 'application/json' }
@@ -43,19 +43,8 @@ export class Controller {
     res.end(await response.text())
   }
 
-  async findMovieRecommendationsForUser (req, res, next) {
-    const response = await fetch(process.env.API_URL + "/FindMovieRecommendationsForUser", {
-        method: 'post',
-        body: await JSON.stringify(req.body),
-        headers: { 'Content-Type': 'application/json' }
-    })
-    res.setHeader('Content-Type', 'application/json');
-    res.writeHead(200)
-    res.end(await response.text())
-  }
-
-  async findMovieRecommendationsItemBased (req, res, next) {
-    const response = await fetch(process.env.API_URL + "/FindMovieRecommendationsForUserItemBased", {
+  async HierarchichalClustering (req, res, next) {
+    const response = await fetch(process.env.API_URL + "/HierarchichalClustering", {
         method: 'post',
         body: await JSON.stringify(req.body),
         headers: { 'Content-Type': 'application/json' }
