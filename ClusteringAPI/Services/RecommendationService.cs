@@ -38,22 +38,6 @@ namespace ClusteringAPI.Services
         private Func<User, User, double> GetUserSimilarityFunc(UserRequest req) =>
             (req.Similarity == "Euclidean") ? CalculateUserSimilarityEuclidean : CalculateUserSimilarityPearson;
 
-
-        public TopMatchingUserResponse FindTopMatchingUsers(UserRequest userRequest)
-        {
-            var selectedUser = _users.Find(user => user.Name == userRequest.User);
-            var userSimilarityFunc = GetUserSimilarityFunc(userRequest);
-            var topMatchingUsers = GetTopMatchingUsers(selectedUser, userSimilarityFunc);
-            var users = new string[topMatchingUsers.Count];
-            var similarities = new double[topMatchingUsers.Count];
-            for (int i = 0; i < topMatchingUsers.Count; i++)
-            {
-                users[i] = topMatchingUsers[i].Item1.Name;
-                similarities[i] = topMatchingUsers[i].Item2;
-            }
-            return new TopMatchingUserResponse(users, similarities, userRequest.Results);
-        }
-
         public MovieRecommendationsResponse FindMovieRecommendationsForUser(UserRequest userRequest)
         {
             var selectedUser = _users.Find(user => user.Name == userRequest.User);

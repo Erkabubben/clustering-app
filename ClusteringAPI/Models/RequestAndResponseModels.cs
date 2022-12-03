@@ -1,4 +1,6 @@
-﻿namespace ClusteringAPI.Models
+﻿using ClusteringAPI.Services;
+
+namespace ClusteringAPI.Models
 {
     public class UserRequest
     {
@@ -7,20 +9,13 @@
         public int Results { get; set; }
     }
 
-    public class TopMatchingUserResponse
+    public class KMeansClusteringResponse
     {
-        public string[] Users { get; set; }
-        public double[] Similarities { get; set; }
+        public List<string[]> Centroids { get; set; }
 
-        public TopMatchingUserResponse(string[] users, double[] similarities, int maxAmount = -1)
+        public KMeansClusteringResponse(List<string[]> centroids)
         {
-            if (maxAmount != -1)
-            {
-                Array.Resize(ref users, Math.Min(users.Length, maxAmount));
-                Array.Resize(ref similarities, Math.Min(similarities.Length, maxAmount));
-            }
-            Users = users;
-            Similarities = similarities;
+            Centroids = centroids;
         }
     }
 

@@ -6,14 +6,14 @@ namespace ClusteringAPI.Controllers
 {
     [ApiController]
     //[Route("[controller]")]
-    [Route("Recommendations")]
+    [Route("Clustering")]
     public class ClusteringController : ControllerBase
     {
-        private readonly RecommendationService _recommendationSystemService;
+        private readonly ClusteringService _clusteringService;
 
         public ClusteringController()
         {
-            //_recommendationSystemService = new ClusteringService("large");
+            _clusteringService = new ClusteringService("blogdata");
         }
 
         [HttpGet(Name = "Index")]
@@ -23,31 +23,17 @@ namespace ClusteringAPI.Controllers
         }
 
         // {baseURL}/api/recommendation/{methodName}
-        [HttpPost][Route("FindTopMatchingUsers")]
-        public ActionResult<TopMatchingUserResponse> FindTopMatchingUsers(UserRequest request)
+        [HttpGet][Route("KMeansClustering")]
+        public ActionResult<KMeansClusteringResponse> KMeansClustering()
         {
-            return _recommendationSystemService.FindTopMatchingUsers(request);
+            return _clusteringService.GetKMeansClusters();
         }
 
-        [HttpPost]
-        [Route("FindMovieRecommendationsForUser")]
-        public ActionResult<MovieRecommendationsResponse> FindMovieRecommendationsForUser(UserRequest request)
+        /*[HttpPost]
+        [Route("HierarchichalClustering")]
+        public ActionResult<MovieRecommendationsResponse> HierarchichalClustering(UserRequest request)
         {
-            return _recommendationSystemService.FindMovieRecommendationsForUser(request);
-        }
-
-        [HttpPost]
-        [Route("FindMovieRecommendationsForUserItemBased")]
-        public ActionResult<MovieRecommendationsResponse> FindMovieRecommendationsForUserItemBased(UserRequest request)
-        {
-            return _recommendationSystemService.FindMovieRecommendationsForUserItemBased(request);
-        }
-
-        [HttpGet]
-        [Route("GetUsersList")]
-        public ActionResult<UserNamesListResponse> GetUsersList()
-        {
-            return _recommendationSystemService.GetUsersList();
-        }
+            return _clusteringService.FindMovieRecommendationsForUser(request);
+        }*/
     }
 }
