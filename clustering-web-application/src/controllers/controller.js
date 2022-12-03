@@ -34,8 +34,7 @@ export class Controller {
 
   async KMeansClustering (req, res, next) {
     const response = await fetch(process.env.API_URL + "/KMeansClustering", {
-        method: 'post',
-        body: await JSON.stringify(req.body),
+        method: 'get',
         headers: { 'Content-Type': 'application/json' }
     })
     res.setHeader('Content-Type', 'application/json');
@@ -45,8 +44,7 @@ export class Controller {
 
   async HierarchichalClustering (req, res, next) {
     const response = await fetch(process.env.API_URL + "/HierarchichalClustering", {
-        method: 'post',
-        body: await JSON.stringify(req.body),
+        method: 'get',
         headers: { 'Content-Type': 'application/json' }
     })
     res.setHeader('Content-Type', 'application/json');
