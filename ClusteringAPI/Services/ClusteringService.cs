@@ -5,7 +5,7 @@ using ClusteringAPI.Models;
 
 namespace ClusteringAPI.Services
 {
-    class ClusteringService
+    public partial class ClusteringService
     {
         private static string appFolderPath = PathGetDirectoryNameTimes(4, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -47,467 +47,11 @@ namespace ClusteringAPI.Services
         }
 
         /// <summary>
-        /// Tests the clustering methods.
-        /// </summary>
-        private void TestKMeansAndHierarchicalClustering()
-        {
-            Console.WriteLine("Total amount of words: " + _blogs[0].Wordcounts.Count);
-            Console.WriteLine("Total amount of word occurences: " + _totalAmountOfWordOcurrences);
-
-            var centroids = ExecuteKMeansClustering(5, 20);
-            PrintCentroidClusters(centroids);
-
-            var mainCluster = ExecuteHierarchicalClustering();
-            PrintCluster(mainCluster, 0);
-        }
-
-        /// <summary>
-        /// Runs the ExecuteKMeansClustering() algorithm and returns the result as a KMeansClusteringResponse.
-        /// </summary>
-        /// <returns>KMeansClusteringResponse</returns>
-        public KMeansClusteringResponse GetKMeansClusters()
-        {
-            var centroids = ExecuteKMeansClustering(5, 20);
-            var responseData = new List<string[]>();
-            foreach (var centroid in centroids)
-            {
-                var blogAssignments = new string[centroid.BlogAssignments.Count];
-                for (int i = 0; i < centroid.BlogAssignments.Count; i++)
-                {
-                    Blog? blog = centroid.BlogAssignments[i];
-                    blogAssignments[i] = blog.Name;
-                }
-                responseData.Add(blogAssignments);
-            }
-            return new KMeansClusteringResponse(responseData);
-        }
-
-        /// <summary>
-        /// Runs the ExecuteHierarchicalClustering() algorithm and returns the result as a HierarchicalClusteringResponse.
-        /// </summary>
-        /// <returns>HierarchicalClusteringResponse</returns>
-        public HierarchicalClusteringResponse GetHierarchicalClusters()
-        {
-            void AddClusterAndChildrenToAllClustersList(Cluster cluster, Dictionary<Cluster, int> indexDictionary, List<Cluster> allClusters)
-            {
-                if (!indexDictionary.ContainsKey(cluster))
-                {
-                    indexDictionary.Add(cluster, allClusters.Count);
-                    allClusters.Add(cluster);
-                }
-                if (cluster.Left != null)
-                    AddClusterAndChildrenToAllClustersList(cluster.Left, indexDictionary, allClusters);
-                if (cluster.Right != null)
-                    AddClusterAndChildrenToAllClustersList(cluster.Right, indexDictionary, allClusters);
-            }
-
-            var mainCluster = ExecuteHierarchicalClustering();
-            var allClusters = new List<Cluster>();
-            var responseClusters = new List<HierarchicalClusteringResponse.ResponseCluster>();
-            var indexDictionary = new Dictionary<Cluster, int>();
-
-            // Populate the allClusters list by recursively adding all clusters.
-            AddClusterAndChildrenToAllClustersList(mainCluster, indexDictionary, allClusters);
-
-            // Convert allClusters to HierarchicalClusteringResponse.ResponseClusters and adds them to responseClusters list.
-            foreach (var cluster in allClusters)
-            {
-                var responseCluster = new HierarchicalClusteringResponse.ResponseCluster();
-                responseCluster.Blog = cluster.Blog != null ? cluster.Blog.Name : null;
-                responseCluster.Left = cluster.Left != null && indexDictionary.ContainsKey(cluster.Left) ? indexDictionary[cluster.Left] : -1;
-                responseCluster.Right = cluster.Right != null && indexDictionary.ContainsKey(cluster.Right) ? indexDictionary[cluster.Right] : -1;
-                responseCluster.Parent = cluster.Parent != null && indexDictionary.ContainsKey(cluster.Parent) ? indexDictionary[cluster.Parent] : -1;
-                responseClusters.Add(responseCluster);
-            }
-            // Creates and returns a HierarchicalClusteringResponse from the responseClusters list.
-            return new HierarchicalClusteringResponse(responseClusters);
-        }
-
-        /// <summary>
-        /// Prints an array of Centroids to the console.
-        /// </summary>
-        /// <param name="centroids">An array of centroids.</param>
-        private void PrintCentroidClusters(Centroid[] centroids)
-        {
-            for (int i = 0; i < centroids.Length; i++)
-            {
-                Centroid? centroid = centroids[i];
-                Console.WriteLine($"Cluster {i} ({centroid.BlogAssignments.Count}):");
-                foreach (var blogAssignment in centroid.BlogAssignments)
-                    Console.WriteLine('\t' + blogAssignment.Name);
-            }
-        }
-
-        /// <summary>
-        /// Sets up arrays of min and max amounts of word occurences in the blogs.
-        /// </summary>
-        /// <param name="wordsTotal">The total amount of words in the data.</param>
-        private void InitiateMinAndMaxOccurencesArrays(int wordsTotal)
-        {
-            _minOccurences = new int[_blogs[0].Wordcounts.Count];
-            _maxOccurences = new int[_blogs[0].Wordcounts.Count];
-            for (int i = 0; i < _minOccurences.Length; i++)
-            {
-                int currentMin = (int)_blogs[0].Wordcounts[0];
-                int currentMax = (int)_blogs[0].Wordcounts[0];
-                foreach (var blog in _blogs)
-                {
-                    if (blog.Wordcounts[i] < currentMin)
-                        currentMin = (int)blog.Wordcounts[i];
-                    if (blog.Wordcounts[i] > currentMax)
-                        currentMax = (int)blog.Wordcounts[i];
-                }
-                _minOccurences[i] = currentMin;
-                _maxOccurences[i] = currentMax;
-            }
-        }
-
-        /// <summary>
-        /// Iterates all blogs and returns the total amount of word occurences.
-        /// </summary>
-        /// <returns>int</returns>
-        private int GetTotalAmountOfWordOccurencesInBlogs()
-        {
-            double words = 0;
-            foreach (var blog in _blogs)
-            {
-                foreach (var wordcount in blog.Wordcounts)
-                    words += wordcount;
-            }
-            return (int)words;
-        }
-
-        /// <summary>
-        /// Generates clusters by the Hierarchical Clustering algorithm and returns the top parent cluster.
-        /// </summary>
-        /// <returns>Cluster</returns>
-        private Cluster ExecuteHierarchicalClustering()
-        {
-            var clusters = new List<Cluster>();
-
-            foreach (var blog in _blogs)
-                clusters.Add(new Cluster(blog));
-
-            for (int i = 0; i < 10000; i++)
-            {
-                clusters = Iterate(clusters);
-                if (clusters.Count <= 1)
-                    break;
-            }
-
-            return clusters[0];
-        }
-
-        /// <summary>
-        /// Recursively iterates the children of a Cluster and prints their contents to the console.
-        /// </summary>
-        /// <param name="cluster">The top parent Cluster to start from.</param>
-        /// <param name="indents">The current amount of indentations to be applied to the console print.</param>
-        private void PrintCluster(Cluster cluster, int indents)
-        {
-            string MultiplyIndents(int indents)
-            {
-                string s = "";
-                for (int i = 0; i < indents; i++)
-                    s += '-';
-                return s;
-            }
-
-            indents++;
-
-            if (cluster.Blog != null && cluster.Blog.Id != -1)
-                Console.WriteLine("\n" + MultiplyIndents(indents) + cluster.Blog.Name);
-            else
-                Console.WriteLine("\n" + MultiplyIndents(indents) + "x");
-            if (cluster.Left != null)
-                PrintCluster(cluster.Left, indents);
-            if (cluster.Right != null)
-                PrintCluster(cluster.Right, indents);
-        }
-
-        /// <summary>
-        /// Iteration function used by the ExecuteHierarchicalClustering method.
-        /// </summary>
-        /// <param name="clusters">A list of clusters.</param>
-        /// <returns>List<Cluster></returns>
-        private List<Cluster> Iterate(List<Cluster> clusters)
-        {
-            // Find two closest nodes
-            double closest = double.MaxValue;
-            Cluster A = null;
-            Cluster B = null;
-            foreach (var clusterA in clusters)
-            {
-                foreach (var clusterB in clusters)
-                {
-                    double distance = Pearson(clusterA.Blog, clusterB.Blog);
-                    if (distance < closest && clusterA != clusterB)
-                    {
-                        // New set of closest nodes found
-                        closest = distance;
-                        A = clusterA;
-                        B = clusterB;
-                    }
-                }
-            }
-            // Merge the two clusters
-            if (A == null || B == null)
-                return null;
-
-            Cluster newCluster = MergeClusters(A, B, closest);
-            // Add new cluster
-            clusters.Add(newCluster);
-            // Remove old clusters
-            clusters.Remove(A);
-            clusters.Remove(B);
-            return clusters;
-        }
-
-        /// <summary>
-        /// Function for merging two clusters into one.
-        /// </summary>
-        /// <param name="A">Cluster to be merged.</param>
-        /// <param name="B">Cluster to be merged.</param>
-        /// <param name="distance">Cluster distance.</param>
-        /// <returns>Cluster</returns>
-        private Cluster MergeClusters(Cluster A, Cluster B, double distance)
-        {
-            //Console.WriteLine("Merging...");
-            // Number of words
-            int n = _totalAmountOfWords;
-            // Create new Cluster
-            Cluster P = new Cluster();
-            // Fill data
-            P.Left = A;
-            A.Parent = P;
-            P.Right = B;
-            B.Parent = P;
-            // Merge blog data by averaging word counts for each word
-            Blog newBlog = new Blog("", -1);
-            for (int i = 0; i < n; i++)
-            {
-                double countA = A.Blog.Wordcounts[i];
-                double countB = B.Blog.Wordcounts[i];
-                // Average word count
-                double count = (countA + countB) / 2;
-                // Set word count to new blog
-                newBlog.Wordcounts.Add(count);
-            }
-            // Set blog to new cluster
-            P.Blog = newBlog;
-            // Set distance
-            P.Distance = distance;
-            // Return new cluster
-            return P;
-        }
-
-        /// <summary>
-        /// A Cluster used in Hierarchical Clustering.
-        /// </summary>
-        private class Cluster
-        {
-            private Cluster _parent;
-            private Cluster _left;
-            private Cluster _right;
-            private Blog _blog;
-            private double _distance;
-            public Cluster Left { get => _left; set => _left = value; }
-            public Cluster Right { get => _right; set => _right = value; }
-            public Blog Blog { get => _blog; set => _blog = value; }
-            public double Distance { get => _distance; set => _distance = value; }
-            public Cluster Parent { get => _parent; set => _parent = value; }
-            public Cluster() { }
-            public Cluster(Blog blog) => _blog = blog;
-        }
-
-        /// <summary>
         /// Interface for classes with a Wordcounts list (Blog and Centroid.)
         /// </summary>
         private interface IWordcountsList
         {
             public List<double> Wordcounts { get; set; }
-        }
-
-        /// <summary>
-        /// A Centroid used in K-Means Clustering.
-        /// </summary>
-        private class Centroid : IWordcountsList
-        {
-            private List<Blog> _blogAssignments;
-            public List<Blog> BlogAssignments { get => _blogAssignments; set => _blogAssignments = value; }
-            public List<double> Wordcounts { get => _wordcounts; set => _wordcounts = value; }
-            public string PreviousAssignments { get => _previousAssignments; set => _previousAssignments = value; }
-            public bool IsFinished { get => _isFinished; set => _isFinished = value; }
-
-            private List<double> _wordcounts;
-            private string _previousAssignments = "";
-            private bool _isFinished = false;
-
-            public Centroid()
-            {
-                _blogAssignments = new List<Blog>();
-                _wordcounts = new List<double>();
-            }
-
-            public void Assign(Blog blog) => _blogAssignments.Add(blog);
-            public void Assign(List<Blog> blogs, string blogName)
-            {
-                var blog = blogs.Find(b => b.Name == blogName);
-                if (blog != null)
-                    Assign(blog);
-            }
-        }
-
-        /// <summary>
-        /// Returns an array of centroids generated by the K-Means Clustering algorithm.
-        /// </summary>
-        /// <param name="clustersAmount">The predetermined amount of clusters. </param>
-        /// <param name="maxIterations">Max amount of iterations (loop will break early if no changes were made from last iteration).</param>
-        /// <returns>Centroid[]</returns>
-        private Centroid[] ExecuteKMeansClustering(int clustersAmount, int maxIterations)
-        {
-            // Number of words
-            int n = _totalAmountOfWords;
-            var centroids = new List<Centroid>();
-
-            // Generate K random Centroids
-            for (int i = 0; i < clustersAmount; i++)
-            {
-                var centroid = new Centroid();
-                for (int j = 0; j < n; j++)
-                    centroid.Wordcounts.Add(_random.Next(_minOccurences[i], _maxOccurences[i] + 1));
-                centroids.Add(centroid);
-            }
-
-            // Iteration loop
-            for (int i = 0; i < maxIterations; i++)
-            {
-                // Clear assignments for all centroids
-                foreach (var centroid in centroids)
-                    centroid.BlogAssignments = new List<Blog>();
-
-                // Assign each blog to closest centroid
-                foreach (var blog in _blogs)
-                {
-                    double distance = double.MaxValue;
-                    Centroid? bestCentroid = null;
-                    // Find closest centroid
-                    foreach (Centroid centroid in centroids)
-                    {
-                        double centroidDistance = Pearson(centroid, blog);
-                        if (centroidDistance < distance)
-                        {
-                            bestCentroid = centroid;
-                            distance = centroidDistance;
-                        }
-                    }
-                    if (bestCentroid != null)
-                        bestCentroid.Assign(blog);
-                }
-
-                // Recalculate center for each centroid
-                foreach (var centroid in centroids)
-                {
-                    // Find average count for each word
-                    for (int j = 0; j < n; j++)
-                    {
-                        double avg = 0;
-                        // Iterate over all blogs assigned to this centroid
-                        foreach (var blog in centroid.BlogAssignments)
-                            avg += blog.Wordcounts[j];
-
-                        avg /= centroid.BlogAssignments.Count;
-
-                        // Update word count for the centroid
-                        centroid.Wordcounts[j] = avg;
-                    }
-                }
-                // Check AssignmentsStrings against strings from previous iteration.
-                foreach (var centroid in centroids)
-                {
-                    var assignmentsString = GetAssignmentsString(centroid);
-                    if (centroid.PreviousAssignments == assignmentsString)
-                        centroid.IsFinished = true;
-                    else
-                        centroid.PreviousAssignments = assignmentsString;
-                }
-                int amountOfFinishedCentroids = 0;
-                // Break iteration loop if all centroids have finished.
-                foreach (var centroid in centroids)
-                    amountOfFinishedCentroids += centroid.IsFinished ? 1 : 0;
-                if (amountOfFinishedCentroids == centroids.Count)
-                    break;
-                // End of iteration loop - all done.
-            }
-            return centroids.ToArray();
-        }
-
-        /// <summary>
-        /// Gets an AssignmentString based on a cluster's blog assignments. Used to check
-        /// if any changes were made since last iteration.
-        /// </summary>
-        /// <param name="centroid">The centroid to generate the string from.</param>
-        /// <returns>string</returns>
-        private string GetAssignmentsString(Centroid centroid)
-        {
-            string s = "";
-            foreach (var blog in centroid.BlogAssignments)
-                s += blog.Id;
-            return s;
-        }
-
-        /// <summary>
-        /// Algorithm for calculating Pearson similarity between two IWordcountsLists.
-        /// </summary>
-        /// <param name="A">An IWordcountsList.</param>
-        /// <param name="B">An IWordcountsList.</param>
-        /// <returns>double</returns>
-        private double Pearson(IWordcountsList A, IWordcountsList B)
-        {
-            // Init variables
-            double sumA = 0;
-            double sumB = 0;
-            double sumAsq = 0;
-            double sumBsq = 0;
-            double pSum = 0;
-
-            // Number of words
-            var n = _totalAmountOfWords;
-
-            // Iterate over all words
-            for (int i = 0; i < n; i++)
-            {
-                var countA = A.Wordcounts[i]; // Word counts for each word in A
-                var countB = B.Wordcounts[i]; // Word counts for each word in B
-                sumA += countA; // Sum of word counts for A
-                sumB += countB; // Sum of word counts for B
-                sumAsq += Math.Pow(countA, 2); // Sum of squared word counts for A
-                sumBsq += Math.Pow(countB, 2); // Sum of squared word counts for B
-                pSum += countA * countB; // Product of word counts from A and B
-            }
-            // Calculate Pearson
-            var num = pSum - (sumA * sumB / n);
-            var den = Math.Sqrt((sumAsq - Math.Pow(sumA, 2) / n) * (sumBsq - Math.Pow(sumB, 2) / n));
-            // Return inverted Pearson score
-            return 1.0 - num / den;
-        }
-
-        /// <summary>
-        /// Prints out the data from the Blog instances with names specified in the argument array.
-        /// </summary>
-        /// <param name="blogNames">Names of Blog objects to be printed.</param>
-        private void TestTXTParsing(string[] blogNames)
-        {
-            foreach (string blogName in blogNames)
-            {
-                var blog = _blogs.Find(blog => blog.Name == blogName);
-                Console.WriteLine($"Printing data on blog '{blog.Name}':");
-                for (int i = 0; i < blog.Wordcounts.Count; i++)
-                {
-                    int wordcount = (int)blog.Wordcounts[i];
-                    Console.WriteLine($"\t{_firstLineValues[i]} : {wordcount}");
-                }
-            }
         }
 
         /// <summary>
@@ -571,6 +115,114 @@ namespace ClusteringAPI.Services
 
                 _blogs.Add(newBlog);
             });
+        }
+
+        /// <summary>
+        /// Tests the clustering methods.
+        /// </summary>
+        private void TestKMeansAndHierarchicalClustering()
+        {
+            Console.WriteLine("Total amount of words: " + _blogs[0].Wordcounts.Count);
+            Console.WriteLine("Total amount of word occurences: " + _totalAmountOfWordOcurrences);
+
+            var centroids = ExecuteKMeansClustering(5, 20);
+            PrintCentroidClusters(centroids);
+
+            var mainCluster = ExecuteHierarchicalClustering();
+            PrintCluster(mainCluster, 0);
+        }
+
+        /// <summary>
+        /// Sets up arrays of min and max amounts of word occurences in the blogs.
+        /// </summary>
+        /// <param name="wordsTotal">The total amount of words in the data.</param>
+        private void InitiateMinAndMaxOccurencesArrays(int wordsTotal)
+        {
+            _minOccurences = new int[_blogs[0].Wordcounts.Count];
+            _maxOccurences = new int[_blogs[0].Wordcounts.Count];
+            for (int i = 0; i < _minOccurences.Length; i++)
+            {
+                int currentMin = (int)_blogs[0].Wordcounts[0];
+                int currentMax = (int)_blogs[0].Wordcounts[0];
+                foreach (var blog in _blogs)
+                {
+                    if (blog.Wordcounts[i] < currentMin)
+                        currentMin = (int)blog.Wordcounts[i];
+                    if (blog.Wordcounts[i] > currentMax)
+                        currentMax = (int)blog.Wordcounts[i];
+                }
+                _minOccurences[i] = currentMin;
+                _maxOccurences[i] = currentMax;
+            }
+        }
+
+        /// <summary>
+        /// Iterates all blogs and returns the total amount of word occurences.
+        /// </summary>
+        /// <returns>int</returns>
+        private int GetTotalAmountOfWordOccurencesInBlogs()
+        {
+            double words = 0;
+            foreach (var blog in _blogs)
+            {
+                foreach (var wordcount in blog.Wordcounts)
+                    words += wordcount;
+            }
+            return (int)words;
+        }
+
+        /// <summary>
+        /// Algorithm for calculating Pearson similarity between two IWordcountsLists.
+        /// </summary>
+        /// <param name="A">An IWordcountsList.</param>
+        /// <param name="B">An IWordcountsList.</param>
+        /// <returns>double</returns>
+        private double Pearson(IWordcountsList A, IWordcountsList B)
+        {
+            // Init variables
+            double sumA = 0;
+            double sumB = 0;
+            double sumAsq = 0;
+            double sumBsq = 0;
+            double pSum = 0;
+
+            // Number of words
+            var n = _totalAmountOfWords;
+
+            // Iterate over all words
+            for (int i = 0; i < n; i++)
+            {
+                var countA = A.Wordcounts[i]; // Word counts for each word in A
+                var countB = B.Wordcounts[i]; // Word counts for each word in B
+                sumA += countA; // Sum of word counts for A
+                sumB += countB; // Sum of word counts for B
+                sumAsq += Math.Pow(countA, 2); // Sum of squared word counts for A
+                sumBsq += Math.Pow(countB, 2); // Sum of squared word counts for B
+                pSum += countA * countB; // Product of word counts from A and B
+            }
+            // Calculate Pearson
+            var num = pSum - (sumA * sumB / n);
+            var den = Math.Sqrt((sumAsq - Math.Pow(sumA, 2) / n) * (sumBsq - Math.Pow(sumB, 2) / n));
+            // Return inverted Pearson score
+            return 1.0 - num / den;
+        }
+
+        /// <summary>
+        /// Prints out the data from the Blog instances with names specified in the argument array.
+        /// </summary>
+        /// <param name="blogNames">Names of Blog objects to be printed.</param>
+        private void TestTXTParsing(string[] blogNames)
+        {
+            foreach (string blogName in blogNames)
+            {
+                var blog = _blogs.Find(blog => blog.Name == blogName);
+                Console.WriteLine($"Printing data on blog '{blog.Name}':");
+                for (int i = 0; i < blog.Wordcounts.Count; i++)
+                {
+                    int wordcount = (int)blog.Wordcounts[i];
+                    Console.WriteLine($"\t{_firstLineValues[i]} : {wordcount}");
+                }
+            }
         }
     }
 }
